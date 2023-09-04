@@ -1,15 +1,19 @@
+import { getMaxListeners } from "koa";
 import { ClientBase, FETCH_FN } from "./base";
 
 
-export class FetchClient<T extends FetchClient<T>> extends ClientBase {
+export class AbstractFetchClient<T extends AbstractFetchClient<T>> extends ClientBase {
 
-    headers: Record<string, string> = {
-        'accept': 'application/json'
-    };
+    headers: Record<string, string>;
 
     constructor(baseUrl: string, fetchImpl?: FETCH_FN | Promise<FETCH_FN>) {
         super(baseUrl, fetchImpl);
         this.baseUrl = baseUrl[baseUrl.length - 1] === '/' ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl;
+        this.headers = this.initialHeaders;
+    }
+
+    get initialHeaders() {
+        return { accept: 'application/json' };
     }
 
     topic(path: string) {
@@ -42,6 +46,14 @@ export class FetchClient<T extends FetchClient<T>> extends ClientBase {
         } else {
             this.headers[key.toLowerCase()] = value;
         }
+    }
+
+}
+
+export class FetchClient extends AbstractFetchClient<FetchClient> {
+
+    constructor(baseUrl: string, fetchImpl?: FETCH_FN | Promise<FETCH_FN>) {
+        super(baseUrl, fetchImpl);
     }
 
 }
