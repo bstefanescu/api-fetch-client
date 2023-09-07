@@ -23,3 +23,9 @@ export function join(left: string, right: string) {
         return left + '/' + right;
     }
 }
+export function removeTrailingSlash(path: string) {
+    if (path[path.length - 1] === '/') {
+        return path.slice(0, -1);
+    }
+    return path;
+}

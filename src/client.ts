@@ -53,7 +53,7 @@ export class FetchClient extends AbstractFetchClient<FetchClient> {
 
 }
 
-export default abstract class ApiTopic extends ClientBase {
+export abstract class ApiTopic extends ClientBase {
 
     constructor(public client: ClientBase, basePath: string) {
         super(client.getUrl(basePath), client._fetch);

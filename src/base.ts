@@ -1,4 +1,4 @@
-import { buildQueryString, join } from "./utils";
+import { buildQueryString, join, removeTrailingSlash } from "./utils";
 
 export type FETCH_FN = (input: RequestInfo, init?: RequestInit) => Promise<Response>;
 type IPrimitives = string | number | boolean | null | undefined | string[] | number[] | boolean[];
@@ -52,12 +52,12 @@ export abstract class ClientBase {
     abstract get headers(): Record<string, string>;
 
     constructor(baseUrl: string, fetchImpl?: FETCH_FN | Promise<FETCH_FN>) {
-        this.baseUrl = baseUrl[baseUrl.length - 1] === '/' ? baseUrl.slice(0, -1) : baseUrl;
+        this.baseUrl = removeTrailingSlash(baseUrl);
         this._fetch = fetchPromise(fetchImpl);
     }
 
     getUrl(path: string) {
-        return join(this.baseUrl, path);
+        return removeTrailingSlash(join(this.baseUrl, path));
     }
 
     get(path: string, params?: IRequestParams) {
