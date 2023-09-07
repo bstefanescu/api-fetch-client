@@ -1,4 +1,3 @@
-import { getMaxListeners } from "koa";
 import { ClientBase, FETCH_FN } from "./base";
 
 
@@ -14,10 +13,6 @@ export class AbstractFetchClient<T extends AbstractFetchClient<T>> extends Clien
 
     get initialHeaders() {
         return { accept: 'application/json' };
-    }
-
-    topic(path: string) {
-        return new ApiTopic(this, path);
     }
 
     withLang(locale: string | undefined | null) {
@@ -58,7 +53,7 @@ export class FetchClient extends AbstractFetchClient<FetchClient> {
 
 }
 
-export default class ApiTopic extends ClientBase {
+export default abstract class ApiTopic extends ClientBase {
 
     constructor(public client: ClientBase, basePath: string) {
         super(client.getUrl(basePath), client._fetch);

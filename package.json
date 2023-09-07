@@ -1,6 +1,6 @@
 {
   "name": "api-fetch-client",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "HTTP client which wraps a fetch implementation and simplify the creation of REST API clients. Works both in browser and in node.",
   "main": "build/index.js",
   "files": [
