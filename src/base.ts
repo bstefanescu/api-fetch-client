@@ -113,8 +113,6 @@ export abstract class ClientBase {
             });
             if (res.ok) {
                 return payload;
-            } else if (res.status === 404) {
-                return null
             } else {
                 return payload.then(resolvedPayload => {
                     throw new ServerError(res.status, resolvedPayload);

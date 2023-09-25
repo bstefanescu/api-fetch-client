@@ -1,6 +1,6 @@
 {
   "name": "api-fetch-client",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "HTTP client which wraps a fetch implementation and simplify the creation of REST API clients. Works both in browser and in node.",
   "main": "build/index.js",
   "files": [
@@ -31,8 +31,8 @@
   },
   "homepage": "https://github.com/bstefanescu/api-fetch-client#readme",
   "devDependencies": {
-    "@koa-stack/router": "^0.7.0",
-    "@koa-stack/server": "^0.7.0",
+    "@koa-stack/router": "^0.9.0",
+    "@koa-stack/server": "^0.9.0",
     "@types/koa": "^2.13.8",
     "@types/mocha": "^10.0.1",
     "koa": "^2.14.2",
