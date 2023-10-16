@@ -80,8 +80,15 @@ export abstract class ClientBase {
         return this.request('PUT', path, params);
     }
 
-    onRequest(url: string, init: RequestInit) {
-        // do nothing
+    /**
+     * Can be overridden to do something with the request before sending it
+     * @param fetch 
+     * @param url 
+     * @param init 
+     * @returns 
+     */
+    doRequest(fetch: FETCH_FN, url: string, init: RequestInit) {
+        return fetch(url, init);
     }
 
     async request(method: string, path: string, params?: IRequestParamsWithPayload) {
@@ -107,9 +114,7 @@ export abstract class ClientBase {
                 headers['content-type'] = 'application/json';
             }
         }
-        // patch the request if needed
-        await this.onRequest(url, init);
-        return this._fetch.then(fetch => fetch(url, init).catch(err => {
+        return this._fetch.then(fetch => this.doRequest(fetch, url, init).catch(err => {
             console.error(`Failed to connect to ${url}`, err);
             throw new ServerError(0, err);
         }).then(res => {
