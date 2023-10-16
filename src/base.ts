@@ -84,7 +84,7 @@ export abstract class ClientBase {
         // do nothing
     }
 
-    request(method: string, path: string, params?: IRequestParamsWithPayload) {
+    async request(method: string, path: string, params?: IRequestParamsWithPayload) {
         let url = this.getUrl(path);
         if (params?.query) {
             url += '?' + buildQueryString(params.query);
@@ -108,7 +108,7 @@ export abstract class ClientBase {
             }
         }
         // patch the request if needed
-        this.onRequest(init);
+        await this.onRequest(init);
         return this._fetch.then(fetch => fetch(url, init).catch(err => {
             console.error(`Failed to connect to ${url}`, err);
             throw new ServerError(0, err);
