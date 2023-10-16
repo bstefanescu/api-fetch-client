@@ -80,7 +80,7 @@ export abstract class ClientBase {
         return this.request('PUT', path, params);
     }
 
-    onRequest(init: RequestInit) {
+    onRequest(url: string, init: RequestInit) {
         // do nothing
     }
 
@@ -108,7 +108,7 @@ export abstract class ClientBase {
             }
         }
         // patch the request if needed
-        await this.onRequest(init);
+        await this.onRequest(url, init);
         return this._fetch.then(fetch => fetch(url, init).catch(err => {
             console.error(`Failed to connect to ${url}`, err);
             throw new ServerError(0, err);

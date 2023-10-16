@@ -59,8 +59,8 @@ export abstract class ApiTopic extends ClientBase {
         super(client.getUrl(basePath), client._fetch);
     }
 
-    onRequest(init: RequestInit): void {
-        this.client.onRequest(init);
+    onRequest(url: string, init: RequestInit): void {
+        this.client.onRequest(url, init);
     }
 
     get headers() {
