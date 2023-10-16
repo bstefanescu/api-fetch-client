@@ -80,6 +80,10 @@ export abstract class ClientBase {
         return this.request('PUT', path, params);
     }
 
+    onRequest(init: RequestInit) {
+        // do nothing
+    }
+
     request(method: string, path: string, params?: IRequestParamsWithPayload) {
         let url = this.getUrl(path);
         if (params?.query) {
@@ -103,6 +107,8 @@ export abstract class ClientBase {
                 headers['content-type'] = 'application/json';
             }
         }
+        // patch the request if needed
+        this.onRequest(init);
         return this._fetch.then(fetch => fetch(url, init).catch(err => {
             console.error(`Failed to connect to ${url}`, err);
             throw new ServerError(0, err);
