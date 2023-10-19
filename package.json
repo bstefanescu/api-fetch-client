@@ -1,16 +1,22 @@
 {
   "name": "api-fetch-client",
-  "version": "0.4.0",
+  "version": "0.4.2",
   "description": "HTTP client which wraps a fetch implementation and simplify the creation of REST API clients. Works both in browser and in node.",
-  "main": "build/index.js",
+  "type": "module",
+  "exports": {
+    "import": "./lib/esm/index.js",
+    "require": "./lib/cjs/index.js",
+    "default": "./lib/esm/index.js"
+  },
   "files": [
-    "build",
+    "lib",
     "src"
   ],
   "scripts": {
-    "test": "mocha -r ts-node/register --exit './test/test.ts'",
-    "clean": "rm -rf ./build ./*.tsbuildinfo",
-    "build": "npm run clean && tsc"
+    "test": "ESBK_TSCONFIG_PATH=./test/tsconfig.json npx mocha -r tsx --exit ./test/**/*.ts",
+    "clean": "rm -rf ./lib",
+    "build": "npm run clean && ./build.sh",
+    "dist": "npm run build && rm ./lib/*tsbuildinfo"
   },
   "repository": {
     "type": "git",
@@ -38,6 +44,7 @@
     "koa": "^2.14.2",
     "mocha": "^10.2.0",
     "ts-node": "^10.9.1",
+    "tsx": "^3.14.0",
     "typescript": "^5.2.2"
   }
 }

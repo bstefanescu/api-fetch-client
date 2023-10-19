@@ -1,4 +1,4 @@
-import { buildQueryString, join, removeTrailingSlash } from "./utils";
+import { buildQueryString, join, removeTrailingSlash } from "./utils.js";
 
 export type FETCH_FN = (input: RequestInfo, init?: RequestInit) => Promise<Response>;
 type IPrimitives = string | number | boolean | null | undefined | string[] | number[] | boolean[];

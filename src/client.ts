@@ -1,4 +1,4 @@
-import { ClientBase, FETCH_FN } from "./base";
+import { ClientBase, FETCH_FN } from "./base.js";
 
 
 export class AbstractFetchClient<T extends AbstractFetchClient<T>> extends ClientBase {

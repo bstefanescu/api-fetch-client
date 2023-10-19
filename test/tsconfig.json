@@ -11,7 +11,7 @@
     /* Language and Environment */
     "target": "es2020", /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */
     "experimentalDecorators": true, /* Enable experimental support for legacy experimental decorators. */
-    "module": "commonjs", /* Specify what module code is generated. */
+    "module": "NodeNext", /* Specify what module code is generated. */
     "rootDir": ".", /* Specify the root folder within your source files. */
     "paths": {
       "api-fetch-client": [

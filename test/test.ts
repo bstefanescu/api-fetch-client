@@ -1,7 +1,7 @@
 import assert from "assert";
-import { FetchClient } from '../src';
+import { FetchClient } from '../src/index.js';
 import { KoaServer } from '@koa-stack/server';
-import Endpoints from './endpoints';
+import Endpoints from './endpoints.js';
 
 const PORT = 7777;
 const server = new KoaServer();

@@ -1,2 +1,2 @@
-export * from "./base";
-export * from "./client";
+export * from "./base.js";
+export * from "./client.js";
