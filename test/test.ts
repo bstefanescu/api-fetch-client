@@ -23,13 +23,33 @@ const client = new FetchClient(`http://localhost:${PORT}/api/v1`).withHeaders({
 describe('Test requests', () => {
     it('get method works', done => {
         client.get('/').then((payload: any) => {
-            assert(payload.message, "Hello World!");
+            assert(payload.message === "Hello World!");
             done();
         }).catch(done);
     });
     it('withHeaders works', done => {
         client.get('/token').then((payload: any) => {
-            assert(payload.token, "1234");
+            assert(payload.token === "1234");
+            done();
+        }).catch(done);
+    });
+    it('handles incorrect content type', done => {
+        client.get('/html').then((payload: any) => {
+            assert(payload.text === "<html><body>Hello!</body></html>");
+            done();
+        }).catch(done);
+    });
+    it('handles errors in incorrect content type', done => {
+        client.get('/html-error').catch((err: any) => {
+            assert(err.payload.text === "<html><body>Error!</body></html>");
+            assert(err.status === 401);
+            done();
+        }).catch(done);
+    });
+    it('handles no content', done => {
+        client.get('/no-content').then((payload) => {
+            assert(payload === undefined);
+            assert(client.response?.status === 204);
             done();
         }).catch(done);
     });

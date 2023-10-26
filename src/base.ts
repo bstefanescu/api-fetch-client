@@ -81,14 +81,62 @@ export abstract class ClientBase {
     }
 
     /**
+     * You can customize the json parser by overriding this method
+     * @param text 
+     * @returns 
+     */
+    jsonParse(text: string) {
+        return JSON.parse(text);
+    }
+
+    /**
      * Can be overridden to do something with the request before sending it
      * @param fetch 
      * @param url 
      * @param init 
      * @returns 
      */
-    doRequest(fetch: FETCH_FN, url: string, init: RequestInit) {
+    handleRequest(fetch: FETCH_FN, url: string, init: RequestInit) {
         return fetch(url, init);
+    }
+
+    async resolveJSONPayload(res: Response) {
+        return res.text().then(text => {
+            if (!text) {
+                return undefined;
+            } else {
+                try {
+                    return this.jsonParse(text);
+                } catch (err: any) {
+                    return {
+                        status: res.status,
+                        error: "Not a valid JSON payload",
+                        message: err.message,
+                        text: text,
+                    };
+                }
+            }
+        }).catch((err) => {
+            return {
+                status: res.status,
+                error: "Unable to load repsonse content",
+                message: err.message,
+            };
+        });
+    }
+
+    /**
+     * Subclasses You can override this to do something with the response
+     * @param res 
+     */
+    handleResponse(res: Response, url: string) {
+        return this.resolveJSONPayload(res).then((payload) => {
+            if (res.ok) {
+                return payload;
+            } else {
+                throw new ServerError(res.status, payload);
+            }
+        });
     }
 
     async request(method: string, path: string, params?: IRequestParamsWithPayload) {
@@ -114,21 +162,11 @@ export abstract class ClientBase {
                 headers['content-type'] = 'application/json';
             }
         }
-        return this._fetch.then(fetch => this.doRequest(fetch, url, init).catch(err => {
+        return this._fetch.then(fetch => this.handleRequest(fetch, url, init).catch(err => {
             console.error(`Failed to connect to ${url}`, err);
             throw new ServerError(0, err);
         }).then(res => {
-            const payload = res.json().catch(err => {
-                console.error(`Failed to parse response from ${url}`, err);
-                throw new ServerError(0, err);
-            });
-            if (res.ok) {
-                return payload;
-            } else {
-                return payload.then(resolvedPayload => {
-                    throw new ServerError(res.status, resolvedPayload);
-                })
-            }
+            return this.handleResponse(res, url);
         }));
     }
 }

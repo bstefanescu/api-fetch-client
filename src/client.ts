@@ -4,6 +4,12 @@ import { ClientBase, FETCH_FN } from "./base.js";
 export class AbstractFetchClient<T extends AbstractFetchClient<T>> extends ClientBase {
 
     headers: Record<string, string>;
+    _auth?: () => Promise<string>;
+    // callbacks usefull to log requests and responses
+    onRequest?: (url: string, init: RequestInit) => void;
+    onResponse?: (res: Response) => void;
+    // the last response. Can be used to inspect the response headers
+    response?: Response;
 
     constructor(baseUrl: string, fetchImpl?: FETCH_FN | Promise<FETCH_FN>) {
         super(baseUrl, fetchImpl);
@@ -13,6 +19,16 @@ export class AbstractFetchClient<T extends AbstractFetchClient<T>> extends Clien
 
     get initialHeaders() {
         return { accept: 'application/json' };
+    }
+
+    /**
+     * Install an auth callback. If the callback is undefined or null then remove the auth callback.
+     * @param authCb a fucntion returning a promise that resolves to the value to use for the authorization header
+     * @returns the client instance
+     */
+    withAuthCallback(authCb?: (() => Promise<string>) | null) {
+        this._auth = authCb || undefined;
+        return this;
     }
 
     withLang(locale: string | undefined | null) {
@@ -43,6 +59,27 @@ export class AbstractFetchClient<T extends AbstractFetchClient<T>> extends Clien
         }
     }
 
+    async handleRequest(fetch: FETCH_FN, url: string, init: RequestInit) {
+        if (this._auth) {
+            const auth = await this._auth();
+            if (auth) {
+                if (!init.headers) {
+                    init.headers = {};
+                }
+                (init.headers as Record<string, string>)!["authorization"] = auth;
+            }
+        }
+        this.onRequest && this.onRequest(url, init);
+        this.response = undefined;
+        return super.handleRequest(fetch, url, init);
+    }
+
+    async handleResponse(res: Response, url: string): Promise<any> {
+        this.response = res; // store last repsonse
+        this.onResponse && this.onResponse(res);
+        return super.handleResponse(res, url);
+    }
+
 }
 
 export class FetchClient extends AbstractFetchClient<FetchClient> {
@@ -60,7 +97,11 @@ export abstract class ApiTopic extends ClientBase {
     }
 
     doRequest(fetch: FETCH_FN, url: string, init: RequestInit): Promise<Response> {
-        return this.client.doRequest(fetch, url, init);
+        return this.client.handleRequest(fetch, url, init);
+    }
+
+    handleResponse(res: Response, url: string): Promise<any> {
+        return this.client.handleResponse(res, url);
     }
 
     get headers() {
