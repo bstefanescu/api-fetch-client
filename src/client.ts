@@ -96,7 +96,7 @@ export abstract class ApiTopic extends ClientBase {
         super(client.getUrl(basePath), client._fetch);
     }
 
-    doRequest(fetch: FETCH_FN, url: string, init: RequestInit): Promise<Response> {
+    handleRequest(fetch: FETCH_FN, url: string, init: RequestInit): Promise<Response> {
         return this.client.handleRequest(fetch, url, init);
     }
 
