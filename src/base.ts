@@ -1,4 +1,3 @@
-import { RequestReaderType } from "./readers.js";
 import { buildQueryString, join, removeTrailingSlash } from "./utils.js";
 
 export type FETCH_FN = (input: RequestInfo, init?: RequestInit) => Promise<Response>;
@@ -10,6 +9,8 @@ export interface IRequestParams {
     /*
      * custom response reader. The default is to read a JSON objectusing the jsonParse method
      * The reader function is called with the client as the `this` context
+     * This can be an async function (i.e. return a promise). If a promise is returned 
+     * it will wait for the promise to resolve before returning the result
      */
     reader?: (response: Response) => any;
     /**
