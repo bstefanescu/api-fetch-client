@@ -1,4 +1,4 @@
-import { ClientBase, FETCH_FN } from "./base.js";
+import { ClientBase, FETCH_FN, IRequestParamsWithPayload } from "./base.js";
 
 
 export class AbstractFetchClient<T extends AbstractFetchClient<T>> extends ClientBase {
@@ -74,10 +74,10 @@ export class AbstractFetchClient<T extends AbstractFetchClient<T>> extends Clien
         return super.handleRequest(fetch, url, init);
     }
 
-    async handleResponse(res: Response, url: string): Promise<any> {
+    async handleResponse(res: Response, url: string, params: IRequestParamsWithPayload | undefined): Promise<any> {
         this.response = res; // store last repsonse
         this.onResponse && this.onResponse(res);
-        return super.handleResponse(res, url);
+        return super.handleResponse(res, url, params);
     }
 
 }
@@ -100,8 +100,8 @@ export abstract class ApiTopic extends ClientBase {
         return this.client.handleRequest(fetch, url, init);
     }
 
-    handleResponse(res: Response, url: string): Promise<any> {
-        return this.client.handleResponse(res, url);
+    handleResponse(res: Response, url: string, params: IRequestParamsWithPayload | undefined): Promise<any> {
+        return this.client.handleResponse(res, url, params);
     }
 
     get headers() {

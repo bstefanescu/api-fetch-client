@@ -1,3 +1,4 @@
+import { RequestReaderType } from "./readers.js";
 import { buildQueryString, join, removeTrailingSlash } from "./utils.js";
 
 export type FETCH_FN = (input: RequestInfo, init?: RequestInit) => Promise<Response>;
@@ -6,10 +7,20 @@ type IPrimitives = string | number | boolean | null | undefined | string[] | num
 export interface IRequestParams {
     query?: Record<string, IPrimitives> | null;
     headers?: Record<string, string> | null;
+    /*
+     * custom response reader. The default is to read a JSON objectusing the jsonParse method
+     * The reader function is called with the client as the `this` context
+     */
+    reader?: (response: Response) => any;
+    /**
+     * Set to false to disable automatic JSON payload serialization
+     * If you need to post other data than a json payload, set this to false and use the `payload` property to set the desired payload
+     */
+    jsonPayload?: boolean
 }
 
 export interface IRequestParamsWithPayload extends IRequestParams {
-    payload?: object | string | null
+    payload?: object | BodyInit | null;
 }
 
 export function fetchPromise(fetchImpl?: FETCH_FN | Promise<FETCH_FN>) {
@@ -100,7 +111,7 @@ export abstract class ClientBase {
         return fetch(url, init);
     }
 
-    async resolveJSONPayload(res: Response) {
+    async readJSONPayload(res: Response) {
         return res.text().then(text => {
             if (!text) {
                 return undefined;
@@ -129,14 +140,18 @@ export abstract class ClientBase {
      * Subclasses You can override this to do something with the response
      * @param res 
      */
-    handleResponse(res: Response, url: string) {
-        return this.resolveJSONPayload(res).then((payload) => {
-            if (res.ok) {
-                return payload;
-            } else {
-                throw new ServerError(res.status, payload);
-            }
-        });
+    handleResponse(res: Response, url: string, params: IRequestParamsWithPayload | undefined) {
+        if (params && params.reader) {
+            return params.reader.call(this, res);
+        } else {
+            return this.readJSONPayload(res).then((payload) => {
+                if (res.ok) {
+                    return payload;
+                } else {
+                    throw new ServerError(res.status, payload);
+                }
+            });
+        }
     }
 
     async request(method: string, path: string, params?: IRequestParamsWithPayload) {
@@ -151,22 +166,29 @@ export abstract class ClientBase {
                 headers[key.toLowerCase()] = paramsHeaders[key];
             }
         }
-        const init: RequestInit = {
-            method: method,
-            headers: headers
-        }
+        let body: BodyInit | undefined;
         const payload = params?.payload;
         if (payload) {
-            init.body = (typeof payload !== 'string') ? JSON.stringify(payload) : payload;
-            if (!('content-type' in headers)) {
-                headers['content-type'] = 'application/json';
+            if (params && params.jsonPayload === false) {
+                body = payload as BodyInit;
+            } else {
+                body = (typeof payload !== 'string') ? JSON.stringify(payload) : payload;
+                if (!('content-type' in headers)) {
+                    headers['content-type'] = 'application/json';
+                }
             }
+        }
+        const init: RequestInit = {
+            method: method,
+            headers: headers,
+            body: body,
         }
         return this._fetch.then(fetch => this.handleRequest(fetch, url, init).catch(err => {
             console.error(`Failed to connect to ${url}`, err);
             throw new ServerError(0, err);
         }).then(res => {
-            return this.handleResponse(res, url);
+            return this.handleResponse(res, url, params);
         }));
     }
 }
+
