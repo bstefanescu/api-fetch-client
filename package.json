@@ -1,12 +1,13 @@
 {
   "name": "api-fetch-client",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "HTTP client which wraps a fetch implementation and simplify the creation of REST API clients. Works both in browser and in node.",
   "type": "module",
-  "types": "./lib/esm/index.d.ts",
   "exports": {
+    "types": "./lib/esm/index.d.ts",
+    "source": "./src/index.ts",
     "import": "./lib/esm/index.js",
-    "require": "./lib/cjs/index.js",
+    "require": "./lib/cjs/index.cjs",
     "default": "./lib/esm/index.js"
   },
   "files": [
@@ -29,7 +30,9 @@
     "api",
     "rest",
     "browser",
-    "node"
+    "node",
+    "sse",
+    "eventsource"
   ],
   "author": "stefanescu.bogdan@gmail.com",
   "license": "MIT",
@@ -47,5 +50,8 @@
     "ts-node": "^10.9.1",
     "tsx": "^3.14.0",
     "typescript": "^5.2.2"
+  },
+  "dependencies": {
+    "eventsource-parser": "^1.1.1"
   }
 }
