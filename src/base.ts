@@ -1,3 +1,4 @@
+import { sse } from "./index.js";
 import { buildQueryString, join, removeTrailingSlash } from "./utils.js";
 
 export type FETCH_FN = (input: RequestInfo, init?: RequestInit) => Promise<Response>;
@@ -11,8 +12,11 @@ export interface IRequestParams {
      * The reader function is called with the client as the `this` context
      * This can be an async function (i.e. return a promise). If a promise is returned 
      * it will wait for the promise to resolve before returning the result
+     * 
+     * If set to 'sse' the response will be treated as a server-sent event stream 
+     * and the requets will return a Promise<ReadableStream<ServerSentEvent>> object
      */
-    reader?: (response: Response) => any;
+    reader?: 'sse' | ((response: Response) => any);
     /**
      * Set to false to disable automatic JSON payload serialization
      * If you need to post other data than a json payload, set this to false and use the `payload` property to set the desired payload
@@ -143,7 +147,11 @@ export abstract class ClientBase {
      */
     handleResponse(res: Response, url: string, params: IRequestParamsWithPayload | undefined) {
         if (params && params.reader) {
-            return params.reader.call(this, res);
+            if (params.reader === 'sse') {
+                return sse(res);
+            } else {
+                return params.reader.call(this, res);
+            }
         } else {
             return this.readJSONPayload(res).then((payload) => {
                 if (res.ok) {

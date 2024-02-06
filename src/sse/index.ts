@@ -2,7 +2,7 @@ import { TextDecoderStream } from "./TextDecoderStream.js";
 import { EventSourceParserStream } from "./EventSourceParserStream.js";
 import { ParsedEvent, ReconnectInterval } from "eventsource-parser";
 
-export type ServerSideEvent = ParsedEvent | ReconnectInterval;
+export type ServerSentEvent = ParsedEvent | ReconnectInterval;
 /**
  * A SSE response reader.
  * Usage client.get('/path', {reader: sse}) or client.post('/path', {reader: sse})
@@ -10,7 +10,7 @@ export type ServerSideEvent = ParsedEvent | ReconnectInterval;
  * @param response 
  * @returns 
  */
-export async function sse(response: Response): Promise<ReadableStream<ServerSideEvent>> {
+export async function sse(response: Response): Promise<ReadableStream<ServerSentEvent>> {
     if (!response.ok) {
         const text = await response.text();
         const error = new Error("SSE error: " + response.status + ". Content:\n" + text);
