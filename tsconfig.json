@@ -1,6 +1,9 @@
 {
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
+    "composite": false,
+    "declaration": true,
+    "declarationDir": "./lib/types",
     "outDir": "./lib/esm",
     "module": "nodenext",
   }
