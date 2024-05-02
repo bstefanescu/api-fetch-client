@@ -10,10 +10,10 @@ export interface IRequestParams {
     /*
      * custom response reader. The default is to read a JSON objectusing the jsonParse method
      * The reader function is called with the client as the `this` context
-     * This can be an async function (i.e. return a promise). If a promise is returned 
+     * This can be an async function (i.e. return a promise). If a promise is returned
      * it will wait for the promise to resolve before returning the result
-     * 
-     * If set to 'sse' the response will be treated as a server-sent event stream 
+     *
+     * If set to 'sse' the response will be treated as a server-sent event stream
      * and the requets will return a Promise<ReadableStream<ServerSentEvent>> object
      */
     reader?: 'sse' | ((response: Response) => any);
@@ -98,8 +98,8 @@ export abstract class ClientBase {
 
     /**
      * You can customize the json parser by overriding this method
-     * @param text 
-     * @returns 
+     * @param text
+     * @returns
      */
     jsonParse(text: string) {
         return JSON.parse(text);
@@ -107,10 +107,10 @@ export abstract class ClientBase {
 
     /**
      * Can be overridden to do something with the request before sending it
-     * @param fetch 
-     * @param url 
-     * @param init 
-     * @returns 
+     * @param fetch
+     * @param url
+     * @param init
+     * @returns
      */
     handleRequest(fetch: FETCH_FN, url: string, init: RequestInit) {
         return fetch(url, init);
@@ -143,7 +143,7 @@ export abstract class ClientBase {
 
     /**
      * Subclasses You can override this to do something with the response
-     * @param res 
+     * @param res
      */
     handleResponse(res: Response, url: string, params: IRequestParamsWithPayload | undefined) {
         if (params && params.reader) {
@@ -199,5 +199,15 @@ export abstract class ClientBase {
             return this.handleResponse(res, url, params);
         }));
     }
-}
 
+    /**
+     * Expose the fetch method
+     * @param input
+     * @param init
+     * @returns
+     */
+    fetch(input: RequestInfo, init?: RequestInit): Promise<Response> {
+        return this._fetch.then(fetch => fetch(input, init));
+    }
+
+}
