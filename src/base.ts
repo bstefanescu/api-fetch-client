@@ -1,3 +1,4 @@
+import { ConnectionError, RequestError, ServerError } from "./errors.js";
 import { sse } from "./index.js";
 import { buildQueryString, join, removeTrailingSlash } from "./utils.js";
 
@@ -41,35 +42,26 @@ export function fetchPromise(fetchImpl?: FETCH_FN | Promise<FETCH_FN>) {
     }
 }
 
-function createMessage(status: number, payload: any) {
-    if (payload && payload.message) {
-        return String(payload.message);
-    } else {
-        return 'Server Error: ' + status;
-    }
-}
-
-export class ServerError extends Error {
-    status: number;
-    payload: any;
-    constructor(status: number, payload: any) {
-        super(createMessage(status, payload));
-        //super('Server Error: ' + status);
-        //super(payload && payload.message ? payload.message : 'Server Error: ' + status);
-        this.status = status;
-        this.payload = payload;
-    }
-}
-
 export abstract class ClientBase {
 
     _fetch: Promise<FETCH_FN>;
     baseUrl: string;
+    errorFactory: (err: RequestError) => Error = (err) => err;
+
     abstract get headers(): Record<string, string>;
+
 
     constructor(baseUrl: string, fetchImpl?: FETCH_FN | Promise<FETCH_FN>) {
         this.baseUrl = removeTrailingSlash(baseUrl);
         this._fetch = fetchPromise(fetchImpl);
+    }
+
+    /**
+     * Can be subclassed to map to custom errors
+     * @param err
+     */
+    throwError(err: RequestError): never {
+        throw this.errorFactory(err);
     }
 
     getUrl(path: string) {
@@ -157,7 +149,7 @@ export abstract class ClientBase {
                 if (res.ok) {
                     return payload;
                 } else {
-                    throw new ServerError(res.status, payload);
+                    this.throwError(new ServerError(res.status, payload));
                 }
             });
         }
@@ -194,7 +186,7 @@ export abstract class ClientBase {
         }
         return this._fetch.then(fetch => this.handleRequest(fetch, url, init).catch(err => {
             console.error(`Failed to connect to ${url}`, err);
-            throw new ServerError(0, err);
+            this.throwError(new ConnectionError(err));
         }).then(res => {
             return this.handleResponse(res, url, params);
         }));

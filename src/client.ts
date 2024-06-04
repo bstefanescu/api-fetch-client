@@ -1,4 +1,5 @@
 import { ClientBase, FETCH_FN, IRequestParamsWithPayload } from "./base.js";
+import { RequestError } from "./errors.js";
 
 
 export class AbstractFetchClient<T extends AbstractFetchClient<T>> extends ClientBase {
@@ -29,6 +30,11 @@ export class AbstractFetchClient<T extends AbstractFetchClient<T>> extends Clien
     withAuthCallback(authCb?: (() => Promise<string>) | null) {
         this._auth = authCb || undefined;
         return this;
+    }
+
+    withErrorFactory(factory: (err: RequestError) => Error) {
+        this.errorFactory = factory;
+        return this as unknown as T;
     }
 
     withLang(locale: string | undefined | null) {
@@ -109,4 +115,3 @@ export abstract class ApiTopic extends ClientBase {
     }
 
 }
-
