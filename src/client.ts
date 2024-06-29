@@ -7,8 +7,8 @@ export class AbstractFetchClient<T extends AbstractFetchClient<T>> extends Clien
     headers: Record<string, string>;
     _auth?: () => Promise<string>;
     // callbacks usefull to log requests and responses
-    onRequest?: (url: string, init: RequestInit) => void;
-    onResponse?: (res: Response) => void;
+    onRequest?: (req: Request) => void;
+    onResponse?: (res: Response, req: Request) => void;
     // the last response. Can be used to inspect the response headers
     response?: Response;
 
@@ -65,7 +65,7 @@ export class AbstractFetchClient<T extends AbstractFetchClient<T>> extends Clien
         }
     }
 
-    async handleRequest(fetch: FETCH_FN, url: string, init: RequestInit) {
+    async createRequest(url: string, init: RequestInit) {
         if (this._auth) {
             const auth = await this._auth();
             if (auth) {
@@ -75,15 +75,16 @@ export class AbstractFetchClient<T extends AbstractFetchClient<T>> extends Clien
                 (init.headers as Record<string, string>)!["authorization"] = auth;
             }
         }
-        this.onRequest && this.onRequest(url, init);
         this.response = undefined;
-        return super.handleRequest(fetch, url, init);
+        const request = await super.createRequest(url, init);
+        this.onRequest && this.onRequest(request);
+        return request;
     }
 
-    async handleResponse(res: Response, url: string, params: IRequestParamsWithPayload | undefined): Promise<any> {
+    async handleResponse(req: Request, res: Response, params: IRequestParamsWithPayload | undefined): Promise<any> {
         this.response = res; // store last repsonse
-        this.onResponse && this.onResponse(res);
-        return super.handleResponse(res, url, params);
+        this.onResponse && this.onResponse(res, req);
+        return super.handleResponse(req, res, params);
     }
 
 }
@@ -102,12 +103,12 @@ export abstract class ApiTopic extends ClientBase {
         super(client.getUrl(basePath), client._fetch);
     }
 
-    handleRequest(fetch: FETCH_FN, url: string, init: RequestInit): Promise<Response> {
-        return this.client.handleRequest(fetch, url, init);
+    createRequest(url: string, init: RequestInit): Promise<Request> {
+        return this.client.createRequest(url, init);
     }
 
-    handleResponse(res: Response, url: string, params: IRequestParamsWithPayload | undefined): Promise<any> {
-        return this.client.handleResponse(res, url, params);
+    handleResponse(req: Request, res: Response, params: IRequestParamsWithPayload | undefined): Promise<any> {
+        return this.client.handleResponse(req, res, params);
     }
 
     get headers() {

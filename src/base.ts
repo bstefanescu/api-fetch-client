@@ -98,14 +98,14 @@ export abstract class ClientBase {
     }
 
     /**
-     * Can be overridden to do something with the request before sending it
-     * @param fetch
-     * @param url
-     * @param init
-     * @returns
-     */
-    handleRequest(fetch: FETCH_FN, url: string, init: RequestInit) {
-        return fetch(url, init);
+    * Can be overridden to create the request
+    * @param fetch
+    * @param url
+    * @param init
+    * @returns
+    */
+    createRequest(url: string, init: RequestInit): Promise<Request> {
+        return Promise.resolve(new Request(url, init));
     }
 
     async readJSONPayload(res: Response) {
@@ -137,7 +137,8 @@ export abstract class ClientBase {
      * Subclasses You can override this to do something with the response
      * @param res
      */
-    handleResponse(res: Response, url: string, params: IRequestParamsWithPayload | undefined) {
+    handleResponse(req: Request, res: Response, params: IRequestParamsWithPayload | undefined) {
+        res.url
         if (params && params.reader) {
             if (params.reader === 'sse') {
                 return sse(res);
@@ -149,7 +150,7 @@ export abstract class ClientBase {
                 if (res.ok) {
                     return payload;
                 } else {
-                    this.throwError(new ServerError(res.status, payload));
+                    this.throwError(new ServerError(req, res.status, payload));
                 }
             });
         }
@@ -184,11 +185,12 @@ export abstract class ClientBase {
             headers: headers,
             body: body,
         }
-        return this._fetch.then(fetch => this.handleRequest(fetch, url, init).catch(err => {
+        const req = await this.createRequest(url, init);
+        return this._fetch.then(fetch => fetch(req).catch(err => {
             console.error(`Failed to connect to ${url}`, err);
-            this.throwError(new ConnectionError(err));
+            this.throwError(new ConnectionError(req, err));
         }).then(res => {
-            return this.handleResponse(res, url, params);
+            return this.handleResponse(req, res, params);
         }));
     }
 

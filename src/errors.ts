@@ -9,21 +9,29 @@ function createMessage(status: number, payload: any) {
 export class RequestError extends Error {
     status: number;
     payload: any;
-    constructor(message: string, status: number, payload: any) {
+    request: Request;
+    details?: string;
+    constructor(message: string, request: Request, status: number, payload: any) {
         super(message);
+        this.request = request;
         this.status = status;
         this.payload = payload;
+        this.details = request.method + ' ' + request.url + ' => ' + status;
+        if (this.payload.details) {
+            this.details += '\nDetails:\n' + this.payload.details;
+        }
     }
+
 }
 
 export class ServerError extends RequestError {
-    constructor(status: number, payload: any) {
-        super(createMessage(status, payload), status, payload);
+    constructor(req: Request, status: number, payload: any) {
+        super(createMessage(status, payload), req, status, payload);
     }
 }
 
 export class ConnectionError extends RequestError {
-    constructor(err: Error) {
-        super("Failed to connect to server: " + err.message, 0, err);
+    constructor(req: Request, err: Error) {
+        super("Failed to connect to server: " + err.message, req, 0, err);
     }
 }
