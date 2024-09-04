@@ -1,6 +1,10 @@
 import { ClientBase, FETCH_FN, IRequestParamsWithPayload } from "./base.js";
 import { RequestError } from "./errors.js";
 
+function isAuthorizationHeaderSet(headers: HeadersInit | undefined): boolean {
+    if (!headers) return false;
+    return "authorization" in headers;
+}
 
 export class AbstractFetchClient<T extends AbstractFetchClient<T>> extends ClientBase {
 
@@ -66,13 +70,12 @@ export class AbstractFetchClient<T extends AbstractFetchClient<T>> extends Clien
     }
 
     async createRequest(url: string, init: RequestInit) {
-        if (this._auth) {
+        if (this._auth && !isAuthorizationHeaderSet(init.headers)) {
+            const headers = (init.headers ? init.headers : {}) as Record<string, string>;
+            init.headers = headers;
             const auth = await this._auth();
             if (auth) {
-                if (!init.headers) {
-                    init.headers = {};
-                }
-                (init.headers as Record<string, string>)!["authorization"] = auth;
+                init.headers["authorization"] = auth;
             }
         }
         this.response = undefined;
